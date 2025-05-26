@@ -1,24 +1,20 @@
 import {NextFunction, Request, Response} from "express";
 import Expense from "../models/Expense";
 import {AuthRequest} from "../middlewares/authMiddleware";
+import mongoose from "mongoose";
+import {
+    createExpenseService, deleteExpenseService,
+    getExpensesByMonthService,
+    getMonthlyTotalAmountService, updateExpenseService
+} from "../services/expense.service";
 
-/**
- * 소비 내역 등록
- */
+// 소비 내역 등록
 export const createExpense = async (req: Request, res: Response) => {
     try {
         const { date, category, description, amount } = req.body;
+        const userId = (req as AuthRequest).user.id;
 
-        const authReq = req as AuthRequest;
-        const userId = authReq.user?.id;
-
-        const newExpense = await Expense.create({
-            userId,
-            date,
-            category,
-            description,
-            amount,
-        });
+        const newExpense = await createExpenseService(userId, date, category, description, amount);
 
         res.status(201).json(newExpense);
     } catch (error) {
@@ -27,42 +23,95 @@ export const createExpense = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * 특정 월 소비 내역 조회
- */
-
+// 특정 월 소비 내역 조회
 export const getExpensesByMonth = async (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
     try {
-        const authReq = req as AuthRequest;
-        const userId = authReq.user?.id;
-
-        if (!userId) {
-            return res.status(401).json({ message: '인증 정보가 없습니다.' });
-        }
-
+        const userId = (req as AuthRequest).user.id;
         const { month } = req.query;
 
         if (!month || typeof month !== 'string') {
-            return res.status(400).json({ message: 'month 쿼리 파라미터가 필요합니다. 예: 2025-05' });
+            res.status(400).json({ message: 'month 쿼리 파라미터가 필요합니다. 예: 2025-05' });
+            return;
         }
 
-        const startDate = new Date(`${month}-01T00:00:00.000Z`);
-        const endDate = new Date(startDate);
-        endDate.setMonth(startDate.getMonth() + 1);
-
-        const expenses = await Expense.find({
-            userId,
-            date: { $gte: startDate, $lt: endDate },
-        }).sort({ date: 1 });
-
+        const expenses = await getExpensesByMonthService(userId, month);
         res.status(200).json(expenses);
     } catch (error) {
         console.error('소비 내역 조회 오류:', error);
-        next(error); // next() 호출로 에러 핸들링 위임 권장
+        next(error);
     }
 };
 
+// 월별 총 소비내역
+export const getMonthlyTotalAmount = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const userId = (req as AuthRequest).user.id;
+        const { month } = req.query;
+
+        if (!month || typeof month !== 'string') {
+            res.status(400).json({ message: "month 쿼리 파라미터가 필요합니다. 예: 2025-05" });
+            return;
+        }
+
+        const totalAmount = await getMonthlyTotalAmountService(userId, month);
+        res.status(200).json({ totalAmount });
+    } catch (error) {
+        console.error("월별 총 소비 조회 오류:", error);
+        next(error);
+    }
+};
+
+// 소비내역 수정
+export const updateExpense = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const userId = (req as AuthRequest).user.id;
+        const expenseId = req.params.id;
+        const updateData = req.body;
+
+        const updatedExpense = await updateExpenseService(userId, expenseId, updateData);
+
+        if (!updatedExpense) {
+            return res.status(404).json({ message: '수정할 소비 내역이 없습니다.' });
+        }
+
+        res.status(200).json(updatedExpense);
+    } catch (err) {
+        console.error('소비 내역 수정 오류:', err);
+        next(err);
+    }
+};
+
+// 소비 내역 삭제
+export const deleteExpense = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const userId = (req as AuthRequest).user.id;
+        const expenseId = req.params.id;
+
+        const deletedExpense = await deleteExpenseService(userId, expenseId);
+
+        if (!deletedExpense) {
+            return res.status(404).json({ message: '삭제할 소비 내역이 없습니다.' });
+        }
+
+        res.status(200).json({ message: '소비 내역이 삭제되었습니다.' });
+    } catch (err) {
+        console.error('소비 내역 삭제 오류:', err);
+        next(err);
+    }
+};
