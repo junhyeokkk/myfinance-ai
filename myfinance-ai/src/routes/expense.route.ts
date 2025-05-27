@@ -1,12 +1,22 @@
-import express from 'express';
-import { authenticateJWT } from '../middlewares/authMiddleware';
-import {createExpense, deleteExpense, getExpensesByMonth, updateExpense} from "../controllers/expense.controller";
+import { Router } from "express";
+import {
+  createExpense,
+  getExpensesByMonth,
+  updateExpense,
+  deleteExpense,
+  getMonthlyTotalAmount
+} from "../controllers/expense.controller";
+import { authenticateJWT } from "../middlewares/authMiddleware";
 
-const router = express.Router();
+const router = Router();
 
-router.post('/expenses', authenticateJWT, createExpense);
-router.get('/expenses', authenticateJWT, getExpensesByMonth);
-router.patch('/expenses/:id', authenticateJWT, updateExpense);
-router.delete('/expenses/:id', authenticateJWT, deleteExpense);
+router.use(authenticateJWT); // 라우터 전체에 인증 적용
+
+// 소비 내역 CRUD
+router.post('/', createExpense);
+router.get('/', getExpensesByMonth);
+router.get('/summary', getMonthlyTotalAmount);
+router.patch('/:id', updateExpense);
+router.delete('/:id', deleteExpense);
 
 export default router;

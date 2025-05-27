@@ -1,18 +1,17 @@
 import {NextFunction, Request, Response} from "express";
-import Expense from "../models/Expense";
-import {AuthRequest} from "../middlewares/authMiddleware";
-import mongoose from "mongoose";
 import {
     createExpenseService, deleteExpenseService,
     getExpensesByMonthService,
     getMonthlyTotalAmountService, updateExpenseService
 } from "../services/expense.service";
 
+// 해당 파일의 클래스에서는 미들웨어가 userId 예외처리 해주기때문에 따로 예외 처리 x
+
 // 소비 내역 등록
 export const createExpense = async (req: Request, res: Response) => {
     try {
         const { date, category, description, amount } = req.body;
-        const userId = (req as AuthRequest).user.id;
+         const userId = req.user!.id;
 
         const newExpense = await createExpenseService(userId, date, category, description, amount);
 
@@ -30,7 +29,7 @@ export const getExpensesByMonth = async (
     next: NextFunction
 ) => {
     try {
-        const userId = (req as AuthRequest).user.id;
+        const userId = req.user!.id;
         const { month } = req.query;
 
         if (!month || typeof month !== 'string') {
@@ -53,7 +52,7 @@ export const getMonthlyTotalAmount = async (
     next: NextFunction
 ) => {
     try {
-        const userId = (req as AuthRequest).user.id;
+        const userId = req.user!.id;
         const { month } = req.query;
 
         if (!month || typeof month !== 'string') {
@@ -76,14 +75,14 @@ export const updateExpense = async (
     next: NextFunction
 ) => {
     try {
-        const userId = (req as AuthRequest).user.id;
+        const userId = req.user!.id;
         const expenseId = req.params.id;
         const updateData = req.body;
 
         const updatedExpense = await updateExpenseService(userId, expenseId, updateData);
 
         if (!updatedExpense) {
-            return res.status(404).json({ message: '수정할 소비 내역이 없습니다.' });
+            res.status(404).json({ message: '수정할 소비 내역이 없습니다.' });
         }
 
         res.status(200).json(updatedExpense);
@@ -100,13 +99,13 @@ export const deleteExpense = async (
     next: NextFunction
 ) => {
     try {
-        const userId = (req as AuthRequest).user.id;
+        const userId = req.user!.id;
         const expenseId = req.params.id;
 
         const deletedExpense = await deleteExpenseService(userId, expenseId);
 
         if (!deletedExpense) {
-            return res.status(404).json({ message: '삭제할 소비 내역이 없습니다.' });
+            res.status(404).json({ message: '삭제할 소비 내역이 없습니다.' });
         }
 
         res.status(200).json({ message: '소비 내역이 삭제되었습니다.' });

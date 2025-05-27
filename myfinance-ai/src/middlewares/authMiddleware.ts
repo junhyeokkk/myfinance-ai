@@ -1,19 +1,20 @@
-import {Request, RequestHandler} from 'express';
-import jwt from 'jsonwebtoken';
+import { RequestHandler } from 'express';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { config } from '../config/config';
 
-import { JwtPayload } from 'jsonwebtoken';
-import {JWT_SECRET} from "../config/config";
-
-// 사용자 정의 JWT Payload 타입
+// 사용자 정의 Payload 타입
 interface DecodedToken extends JwtPayload {
-    id: string; // 토큰에 id만 담겨 있다고 가정
+    id: string;
 }
 
-// 확장된 Request 타입 정의
-export interface AuthRequest extends Request {
-    user: {
-        id: string;
-    };
+declare global {
+    namespace Express {
+        interface Request {
+            user?: {
+                id: string;
+            };
+        }
+    }
 }
 
 export const authenticateJWT: RequestHandler = (req, res, next) => {
@@ -27,13 +28,12 @@ export const authenticateJWT: RequestHandler = (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET as string) as DecodedToken;
-
-        // 타입 단언해서 user 프로퍼티 추가
-        (req as AuthRequest).user = { id: decoded.id };
-
+        const decoded = jwt.verify(token, config.jwt.secret) as DecodedToken;
+        req.user = { id: decoded.id };
         next();
     } catch (err) {
+        console.error('[JWT Error]', err);
         res.status(403).json({ error: '유효하지 않은 토큰입니다.' });
+        return;
     }
 };
