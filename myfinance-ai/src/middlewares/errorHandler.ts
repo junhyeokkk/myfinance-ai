@@ -12,8 +12,10 @@ export const errorHandler = (
     console.error('[Global Error]', err);
 
     if (err instanceof ClientError) {
-        return sendError(res, err.message, 400);
+        sendError(res, err.message, 400);
+        return;
     }
 
-    return sendError(res, '서버 오류가 발생했습니다.', 500);
+    sendError(res, '서버 오류가 발생했습니다.', 500);
+    return;
 };
