@@ -17,7 +17,6 @@ app.use('/auth', authRoutes);
 app.use('/expenses', expenseRoutes); // authenticateJWT는 라우터 내부에서 적용
 app.use('/ai', aiRoutes); // authenticateJWT는 라우터 내부에서 적용
 
-
 app.get('/', (_, res) => {
     res.send('TypeScript API');
 });
