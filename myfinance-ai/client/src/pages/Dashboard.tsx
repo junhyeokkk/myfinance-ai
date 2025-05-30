@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, type JSX } from 'react';
+import '../style/dashboard.css'
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -11,19 +12,86 @@ import {
   CheckCircle,
   Calendar,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  type LucideIcon,
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from 'recharts';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  PieChart as RechartsPieChart, 
+  Cell,
+  Pie
+} from 'recharts';
+
+// Types
+interface User {
+  name: string;
+  email: string;
+  monthlyIncome: number;
+  monthlyBudget: number;
+}
+
+interface SpendingData {
+  month: string;
+  amount: number;
+}
+
+interface CategoryData {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface Transaction {
+  id: number;
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+}
+
+interface AIInsight {
+  id: number;
+  type: 'warning' | 'success' | 'tip';
+  title: string;
+  content: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+interface StatCardProps {
+  title: string;
+  value: string;
+  change: number;
+  icon: LucideIcon;
+  trend: 'up' | 'down';
+  color?: 'blue' | 'green' | 'purple' | 'orange';
+}
+
+interface ProgressBarProps {
+  label: string;
+  current: number;
+  max: number;
+  color?: string;
+}
+
+interface InsightCardProps {
+  insight: AIInsight;
+}
 
 // Mock data - 실제 프로젝트에서는 API에서 가져옵니다
-const mockUser = {
+const mockUser: User = {
   name: '김민수',
   email: 'minsu@example.com',
   monthlyIncome: 3500000,
   monthlyBudget: 3000000
 };
 
-const mockSpendingData = [
+const mockSpendingData: SpendingData[] = [
   { month: '1월', amount: 2800000 },
   { month: '2월', amount: 3200000 },
   { month: '3월', amount: 2900000 },
@@ -32,7 +100,7 @@ const mockSpendingData = [
   { month: '6월', amount: 2950000 }
 ];
 
-const mockCategoryData = [
+const mockCategoryData: CategoryData[] = [
   { name: '식비', value: 850000, color: '#8B5CF6' },
   { name: '교통비', value: 320000, color: '#10B981' },
   { name: '쇼핑', value: 680000, color: '#F59E0B' },
@@ -41,7 +109,7 @@ const mockCategoryData = [
   { name: '기타', value: 270000, color: '#6B7280' }
 ];
 
-const mockTransactions = [
+const mockTransactions: Transaction[] = [
   { id: 1, description: '스타벅스 아메리카노', amount: 4500, category: '식비', date: '2024-05-29' },
   { id: 2, description: '지하철 교통카드 충전', amount: 50000, category: '교통비', date: '2024-05-28' },
   { id: 3, description: '온라인 쇼핑몰', amount: 89000, category: '쇼핑', date: '2024-05-27' },
@@ -49,7 +117,7 @@ const mockTransactions = [
   { id: 5, description: '넷플릭스 구독료', amount: 17000, category: '엔터테인먼트', date: '2024-05-25' }
 ];
 
-const mockAIInsights = [
+const mockAIInsights: AIInsight[] = [
   {
     id: 1,
     type: 'warning',
@@ -73,25 +141,25 @@ const mockAIInsights = [
   }
 ];
 
-export default function Dashboard() {
-  const [user] = useState(mockUser);
-  const [currentMonthSpending, setCurrentMonthSpending] = useState(2750000);
-  const [budgetProgress, setBudgetProgress] = useState(92);
-  const [savingsRate, setSavingsRate] = useState(78);
+export default function Dashboard(): JSX.Element {
+  const [user] = useState<User>(mockUser);
+  const [currentMonthSpending, setCurrentMonthSpending] = useState<number>(2750000);
+  const [budgetProgress, setBudgetProgress] = useState<number>(92);
+  const [savingsRate, setSavingsRate] = useState<number>(78);
 
-  const totalIncome = user.monthlyIncome;
-  const remainingBudget = user.monthlyBudget - currentMonthSpending;
-  const savingsAmount = totalIncome - currentMonthSpending;
-  const spendingChangePercent = -8.2; // 지난달 대비
+  const totalIncome: number = user.monthlyIncome;
+  const remainingBudget: number = user.monthlyBudget - currentMonthSpending;
+  const savingsAmount: number = totalIncome - currentMonthSpending;
+  const spendingChangePercent: number = -8.2; // 지난달 대비
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('ko-KR', {
       style: 'currency',
       currency: 'KRW'
     }).format(amount);
   };
 
-  const StatCard = ({ title, value, change, icon: Icon, trend, color = 'blue' }) => {
+  const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon: Icon, trend, color = 'blue' }) => {
     const colorClasses = {
       blue: 'bg-blue-50 text-blue-700 border-blue-200',
       green: 'bg-green-50 text-green-700 border-green-200',
@@ -120,8 +188,8 @@ export default function Dashboard() {
     );
   };
 
-  const ProgressBar = ({ label, current, max, color = '#8B5CF6' }) => {
-    const percentage = (current / max) * 100;
+  const ProgressBar: React.FC<ProgressBarProps> = ({ label, current, max, color = '#8B5CF6' }) => {
+    const percentage: number = (current / max) * 100;
     
     return (
       <div className="progress-container">
@@ -146,8 +214,8 @@ export default function Dashboard() {
     );
   };
 
-  const InsightCard = ({ insight }) => {
-    const getInsightIcon = (type) => {
+  const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
+    const getInsightIcon = (type: string): JSX.Element => {
       switch (type) {
         case 'warning': return <AlertCircle className="text-orange-500" size={20} />;
         case 'success': return <CheckCircle className="text-green-500" size={20} />;
@@ -155,7 +223,7 @@ export default function Dashboard() {
       }
     };
 
-    const getPriorityColor = (priority) => {
+    const getPriorityColor = (priority: string): string => {
       switch (priority) {
         case 'high': return 'border-l-red-500 bg-red-50';
         case 'medium': return 'border-l-orange-500 bg-orange-50';
@@ -239,10 +307,10 @@ export default function Dashboard() {
                 <XAxis dataKey="month" stroke="#9CA3AF" />
                 <YAxis 
                   stroke="#9CA3AF"
-                  tickFormatter={(value) => `${value/1000000}M`}
+                  tickFormatter={(value: number) => `${value/1000000}M`}
                 />
                 <Tooltip 
-                  formatter={(value) => [formatCurrency(value), '지출액']}
+                  formatter={(value: number) => [formatCurrency(value), '지출액']}
                   labelStyle={{ color: '#374151' }}
                 />
                 <Line 
@@ -275,15 +343,15 @@ export default function Dashboard() {
                   outerRadius={80}
                   dataKey="value"
                 >
-                  {mockCategoryData.map((entry, index) => (
+                  {mockCategoryData.map((entry: CategoryData, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => formatCurrency(value)} />
+                <Tooltip formatter={(value: number) => formatCurrency(value)} />
               </RechartsPieChart>
             </ResponsiveContainer>
             <div className="category-legend">
-              {mockCategoryData.map((category) => (
+              {mockCategoryData.map((category: CategoryData) => (
                 <div key={category.name} className="legend-item">
                   <div 
                     className="legend-color" 
@@ -343,7 +411,7 @@ export default function Dashboard() {
             <span className="card-subtitle">맞춤 분석</span>
           </div>
           <div className="insights-content">
-            {mockAIInsights.map((insight) => (
+            {mockAIInsights.map((insight: AIInsight) => (
               <InsightCard key={insight.id} insight={insight} />
             ))}
           </div>
@@ -356,7 +424,7 @@ export default function Dashboard() {
             <button className="view-all-btn">전체보기</button>
           </div>
           <div className="transactions-list">
-            {mockTransactions.map((transaction) => (
+            {mockTransactions.map((transaction: Transaction) => (
               <div key={transaction.id} className="transaction-item">
                 <div className="transaction-info">
                   <h4 className="transaction-description">{transaction.description}</h4>

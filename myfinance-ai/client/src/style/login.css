@@ -2,7 +2,6 @@
 
 body, html, #root {
   width: 100%;  
-  min-height: 100vh;
   background: linear-gradient(135deg, #eef2ff 0%, #ffffff 50%, #faf5ff 100%);
   display: flex;
   align-items: center;
