@@ -31,6 +31,9 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
                 name: user.name,
             },
         }, '로그인 성공');
+
+        console.log('로그인 성공');
+
         return;
     } catch (error) {
         next(error);
